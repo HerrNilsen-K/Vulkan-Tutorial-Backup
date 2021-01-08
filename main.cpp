@@ -20,19 +20,45 @@ void printStats(const VkPhysicalDevice &device)
     vkGetPhysicalDeviceProperties(device, &properties);
     uint32_t apiVer = properties.apiVersion;
 
-    std::cout << "Name:             " << properties.deviceName << std::endl
-              << "API Version:      " << VK_VERSION_MAJOR(apiVer) << '.' << VK_VERSION_MINOR(apiVer) << '.' << VK_VERSION_PATCH(apiVer) << std::endl
-              << "Driver Version:   " << properties.driverVersion << std::endl
-              << "Vendor ID:        " << properties.vendorID << std::endl
-              << "Device ID:        " << properties.deviceID << std::endl
-              << "Device Type:      " << properties.deviceType << std::endl;
+    std::cout << "Name:                     " << properties.deviceName << std::endl
+              << "API Version:              " << VK_VERSION_MAJOR(apiVer) << '.' << VK_VERSION_MINOR(apiVer) << '.' << VK_VERSION_PATCH(apiVer) << std::endl
+              << "Driver Version:           " << properties.driverVersion << std::endl
+              << "Vendor ID:                " << properties.vendorID << std::endl
+              << "Device ID:                " << properties.deviceID << std::endl
+              << "Device Type:              " << properties.deviceType << std::endl
+              << "DiscreteQueuePriorities:  " << properties.limits.discreteQueuePriorities << std::endl;
 
     VkPhysicalDeviceFeatures features;
     vkGetPhysicalDeviceFeatures(device, &features);
-    std::cout << "Geometry Shader:  " << features.geometryShader << std::endl;
+    std::cout << "Geometry Shader:          " << features.geometryShader << std::endl;
 
     VkPhysicalDeviceMemoryProperties memProp;
     vkGetPhysicalDeviceMemoryProperties(device, &memProp);
+
+    uint32_t amountOfQueueFamilies = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &amountOfQueueFamilies, NULL);
+    VkQueueFamilyProperties *familyProperties = new VkQueueFamilyProperties[amountOfQueueFamilies];
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &amountOfQueueFamilies, familyProperties);
+
+    std::cout << "Amount of Queue Families: " << amountOfQueueFamilies << std::endl;
+
+    for (int i = 0; i < amountOfQueueFamilies; i++)
+    {
+        std::cout << std::endl;
+        std::cout << "Queue Familie #" << i << std::endl;
+        std::cout << "VK_QUEUE_GRAPHICS_BIT         " << ((familyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) ? "true" : "false") << std::endl;
+        std::cout << "VK_QUEUE_COMPUTE_BIT          " << ((familyProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) ? "true" : "false") << std::endl;
+        std::cout << "VK_QUEUE_TRANSFER_BIT         " << ((familyProperties[i].queueFlags & VK_QUEUE_TRANSFER_BIT) ? "true" : "false") << std::endl;
+        std::cout << "VK_QUEUE_SPARSE_BINDING_BIT   " << ((familyProperties[i].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) ? "true" : "false") << std::endl;
+        std::cout << "Queue Count: " << familyProperties[i].queueCount << std::endl;
+        std::cout << "Timestamp valid Bits: " << familyProperties[i].timestampValidBits << std::endl;
+        uint32_t width = familyProperties[i].minImageTransferGranularity.width;
+        uint32_t height = familyProperties[i].minImageTransferGranularity.height;
+        uint32_t depth = familyProperties[i].minImageTransferGranularity.depth;
+        std::cout << "Min image Timestamp Grabularity: " << width << ", " << height << ", " << depth << std::endl;
+    }
+
+    delete[] familyProperties;
 
     std::cout << std::endl;
 }
@@ -78,6 +104,14 @@ int main()
     {
         printStats(*physicalDevice);
     }
+
+    VkDeviceQueueCreateInfo deviceQueueInfo;
+    deviceQueueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    deviceQueueInfo.pNext = NULL;
+    deviceQueueInfo.flags = 0;
+    deviceQueueInfo.queueFamilyIndex = 0; //TODO Choose correct family index
+    deviceQueueInfo.queueCount = 4;       //TODO Check if this amount is valid
+    deviceQueueInfo.pQueuePriorities = NULL;
 
     return 0;
 }
