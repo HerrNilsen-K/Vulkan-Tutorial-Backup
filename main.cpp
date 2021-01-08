@@ -12,6 +12,7 @@
     }
 
 VkInstance instance;
+VkDevice device;
 
 //Print some stats about the graphics card
 void printStats(const VkPhysicalDevice &device)
@@ -115,17 +116,21 @@ int main()
 
     VkPhysicalDeviceFeatures usedFeatures = {};
 
-    VkDeviceCreateInfo deviceCreateInfo;
-    deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    deviceCreateInfo.pNext = NULL;
-    deviceCreateInfo.flags = 0;
-    deviceCreateInfo.queueCreateInfoCount = 1;
-    deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
-    deviceCreateInfo.enabledLayerCount = 0;
-    deviceCreateInfo.ppEnabledLayerNames = NULL;
-    deviceCreateInfo.enabledExtensionCount = 0;
-    deviceCreateInfo.ppEnabledExtensionNames = NULL;
-    deviceCreateInfo.pEnabledFeatures = &usedFeatures;
+    VkDeviceCreateInfo devicesCreateInfo;
+    devicesCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    devicesCreateInfo.pNext = NULL;
+    devicesCreateInfo.flags = 0;
+    devicesCreateInfo.queueCreateInfoCount = 1;
+    devicesCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
+    devicesCreateInfo.enabledLayerCount = 0;
+    devicesCreateInfo.ppEnabledLayerNames = NULL;
+    devicesCreateInfo.enabledExtensionCount = 0;
+    devicesCreateInfo.ppEnabledExtensionNames = NULL;
+    devicesCreateInfo.pEnabledFeatures = &usedFeatures;
+
+    //TODO pick "best device" instead of first device
+    result = vkCreateDevice(physicalDevice[0], &devicesCreateInfo, NULL, &device);
+    ASSERT_VULKAN(result);
 
     return 0;
 }
