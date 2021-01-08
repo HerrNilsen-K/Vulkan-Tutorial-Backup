@@ -1,0 +1,4 @@
+1. Create an "VkApplicationInfo"
+2. Create an "VkInstanceCreateInfo"
+3. Create an "VkInstance"
+4. Get amount of physical devicecs 
