@@ -105,13 +105,27 @@ int main()
         printStats(*physicalDevice);
     }
 
-    VkDeviceQueueCreateInfo deviceQueueInfo;
-    deviceQueueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    deviceQueueInfo.pNext = NULL;
-    deviceQueueInfo.flags = 0;
-    deviceQueueInfo.queueFamilyIndex = 0; //TODO Choose correct family index
-    deviceQueueInfo.queueCount = 4;       //TODO Check if this amount is valid
-    deviceQueueInfo.pQueuePriorities = NULL;
+    VkDeviceQueueCreateInfo deviceQueueCreateInfo;
+    deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    deviceQueueCreateInfo.pNext = NULL;
+    deviceQueueCreateInfo.flags = 0;
+    deviceQueueCreateInfo.queueFamilyIndex = 0; //TODO Choose correct family index
+    deviceQueueCreateInfo.queueCount = 4;       //TODO Check if this amount is valid
+    deviceQueueCreateInfo.pQueuePriorities = NULL;
+
+    VkPhysicalDeviceFeatures usedFeatures = {};
+
+    VkDeviceCreateInfo deviceCreateInfo;
+    deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    deviceCreateInfo.pNext = NULL;
+    deviceCreateInfo.flags = 0;
+    deviceCreateInfo.queueCreateInfoCount = 1;
+    deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
+    deviceCreateInfo.enabledLayerCount = 0;
+    deviceCreateInfo.ppEnabledLayerNames = NULL;
+    deviceCreateInfo.enabledExtensionCount = 0;
+    deviceCreateInfo.ppEnabledExtensionNames = NULL;
+    deviceCreateInfo.pEnabledFeatures = &usedFeatures;
 
     return 0;
 }

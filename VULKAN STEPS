@@ -3,3 +3,4 @@
 3. Create an "VkInstance"
 4. Get amount of physical devices 
 5. Create an "VkDeviceCreateInfo"
+6. Create an "VkDeviceCreateInfo"
