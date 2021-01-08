@@ -101,11 +101,13 @@ int main()
 
     ASSERT_VULKAN(result);
 
+    //Print informations about the graphics card/driver
     for (int i = 0; i < amountOfPhysicalDevices; i++)
     {
         printStats(*physicalDevice);
     }
 
+    //Create device queue info
     VkDeviceQueueCreateInfo deviceQueueCreateInfo;
     deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     deviceQueueCreateInfo.pNext = NULL;
@@ -116,6 +118,7 @@ int main()
 
     VkPhysicalDeviceFeatures usedFeatures = {};
 
+    //Create device info
     VkDeviceCreateInfo devicesCreateInfo;
     devicesCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     devicesCreateInfo.pNext = NULL;
@@ -128,6 +131,7 @@ int main()
     devicesCreateInfo.ppEnabledExtensionNames = NULL;
     devicesCreateInfo.pEnabledFeatures = &usedFeatures;
 
+    //Craete device
     //TODO pick "best device" instead of first device
     result = vkCreateDevice(physicalDevice[0], &devicesCreateInfo, NULL, &device);
     ASSERT_VULKAN(result);
