@@ -156,7 +156,7 @@ int main()
     deviceQueueCreateInfo.pNext = NULL;
     deviceQueueCreateInfo.flags = 0;
     deviceQueueCreateInfo.queueFamilyIndex = 0; //TODO Choose correct family index
-    deviceQueueCreateInfo.queueCount = 4;       //TODO Check if this amount is valid
+    deviceQueueCreateInfo.queueCount = 1;       //TODO Check if this amount is valid
     deviceQueueCreateInfo.pQueuePriorities = queuePrios;
 
     VkPhysicalDeviceFeatures usedFeatures = {};
@@ -178,6 +178,10 @@ int main()
     //TODO pick "best device" instead of first device
     result = vkCreateDevice(physicalDevice[0], &devicesCreateInfo, NULL, &device);
     ASSERT_VULKAN(result);
+
+    //Create a Queue
+    VkQueue queue;
+    vkGetDeviceQueue(device, 0, 0, &queue);
 
     //Cleanup Vulkan
     vkDeviceWaitIdle(device);
