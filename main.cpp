@@ -77,10 +77,12 @@ int main()
     appInfo.engineVersion = VK_MAKE_VERSION(0, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_2;
 
+    //Get and print Layers
     uint32_t amountOfLayers = 0;
     vkEnumerateInstanceLayerProperties(&amountOfLayers, NULL);
-    VkLayerProperties *layers = new VkLayerProperties[amountOfLayers];
-    vkEnumerateInstanceLayerProperties(&amountOfLayers, layers);
+    std::vector<VkLayerProperties> layers;
+    layers.resize(amountOfLayers);
+    vkEnumerateInstanceLayerProperties(&amountOfLayers, layers.data());
 
     std::cout << "Amount of layers: " << amountOfLayers << std::endl;
     for (int i = 0; i < amountOfLayers; i++)
@@ -93,10 +95,12 @@ int main()
         std::cout << std::endl;
     }
 
+    //Get and print Extensions
     uint32_t amountOfExtensions = 0;
     vkEnumerateInstanceExtensionProperties(NULL, &amountOfExtensions, NULL);
-    VkExtensionProperties *extensions = new VkExtensionProperties[amountOfExtensions];
-    vkEnumerateInstanceExtensionProperties(NULL, &amountOfExtensions, extensions);
+    std::vector<VkExtensionProperties> extensions;
+    extensions.resize(amountOfExtensions);
+    vkEnumerateInstanceExtensionProperties(NULL, &amountOfExtensions, extensions.data());
 
     std::cout << std::endl;
     std::cout << "Amount of Extensions: " << amountOfExtensions << std::endl;
@@ -131,15 +135,17 @@ int main()
     result = vkEnumeratePhysicalDevices(instance, &amountOfPhysicalDevices, NULL);
     ASSERT_VULKAN(result);
 
-    VkPhysicalDevice *physicalDevice = new VkPhysicalDevice[amountOfPhysicalDevices];
-    result = vkEnumeratePhysicalDevices(instance, &amountOfPhysicalDevices, physicalDevice);
+    std::vector<VkPhysicalDevice> physicalDevice;
+    physicalDevice.resize(amountOfPhysicalDevices);
+
+    result = vkEnumeratePhysicalDevices(instance, &amountOfPhysicalDevices, physicalDevice.data());
 
     ASSERT_VULKAN(result);
 
     //Print informations about the graphics card/driver
     for (int i = 0; i < amountOfPhysicalDevices; i++)
     {
-        printStats(*physicalDevice);
+        printStats(*physicalDevice.data());
     }
 
     float queuePrios[] = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -172,6 +178,11 @@ int main()
     //TODO pick "best device" instead of first device
     result = vkCreateDevice(physicalDevice[0], &devicesCreateInfo, NULL, &device);
     ASSERT_VULKAN(result);
+
+    //Cleanup Vulkan
+    vkDeviceWaitIdle(device);
+    vkDestroyDevice(device, NULL);
+    vkDestroyInstance(instance, NULL);
 
     return 0;
 }

@@ -7,3 +7,5 @@
 6. Create an "VkDeviceCreateInfo"
 7. Create an "VkDevice"
 8. Set "VK_LAYER_LUNARG_standard_validation" layer
+
+END: destroy the device and instance in reverse order of creation
