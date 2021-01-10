@@ -1,5 +1,6 @@
 #include <vulkan/vulkan.h>
 #include <iostream>
+#include <vector>
 
 #define ASSERT_VULKAN(val)                                         \
     if (val != VK_SUCCESS)                                         \
@@ -76,14 +77,48 @@ int main()
     appInfo.engineVersion = VK_MAKE_VERSION(0, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_2;
 
+    uint32_t amountOfLayers = 0;
+    vkEnumerateInstanceLayerProperties(&amountOfLayers, NULL);
+    VkLayerProperties *layers = new VkLayerProperties[amountOfLayers];
+    vkEnumerateInstanceLayerProperties(&amountOfLayers, layers);
+
+    std::cout << "Amount of layers: " << amountOfLayers << std::endl;
+    for (int i = 0; i < amountOfLayers; i++)
+    {
+        std::cout << "Layer: " << i << std::endl;
+        std::cout << "\tName:         " << layers[i].layerName << std::endl;
+        std::cout << "\tSpec version: " << layers[i].specVersion << std::endl;
+        std::cout << "\tImpl Version: " << layers[i].implementationVersion << std::endl;
+        std::cout << "\tDescription:  " << layers[i].description << std::endl;
+        std::cout << std::endl;
+    }
+
+    uint32_t amountOfExtensions = 0;
+    vkEnumerateInstanceExtensionProperties(NULL, &amountOfExtensions, NULL);
+    VkExtensionProperties *extensions = new VkExtensionProperties[amountOfExtensions];
+    vkEnumerateInstanceExtensionProperties(NULL, &amountOfExtensions, extensions);
+
+    std::cout << std::endl;
+    std::cout << "Amount of Extensions: " << amountOfExtensions << std::endl;
+    for (int i = 0; i < amountOfExtensions; i++)
+    {
+        std::cout << std::endl;
+        std::cout << "Name: " << extensions[i].extensionName << std::endl;
+        std::cout << "Spec Version: " << extensions[i].specVersion << std::endl;
+    }
+    std::cout << std::endl;
+
+    const std::vector<const char *> validationLayers = {
+        "VK_LAYER_LUNARG_standard_validation"};
+
     //Create instance info
     VkInstanceCreateInfo instanceInfo;
     instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceInfo.pNext = NULL;
     instanceInfo.flags = 0;
     instanceInfo.pApplicationInfo = &appInfo;
-    instanceInfo.enabledLayerCount = 0;
-    instanceInfo.ppEnabledLayerNames = NULL;
+    instanceInfo.enabledLayerCount = validationLayers.size();
+    instanceInfo.ppEnabledLayerNames = validationLayers.data();
     instanceInfo.enabledExtensionCount = 0;
     instanceInfo.ppEnabledExtensionNames = NULL;
 
@@ -107,6 +142,8 @@ int main()
         printStats(*physicalDevice);
     }
 
+    float queuePrios[] = {1.0f, 1.0f, 1.0f, 1.0f};
+
     //Create device queue info
     VkDeviceQueueCreateInfo deviceQueueCreateInfo;
     deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -114,7 +151,7 @@ int main()
     deviceQueueCreateInfo.flags = 0;
     deviceQueueCreateInfo.queueFamilyIndex = 0; //TODO Choose correct family index
     deviceQueueCreateInfo.queueCount = 4;       //TODO Check if this amount is valid
-    deviceQueueCreateInfo.pQueuePriorities = NULL;
+    deviceQueueCreateInfo.pQueuePriorities = queuePrios;
 
     VkPhysicalDeviceFeatures usedFeatures = {};
 
