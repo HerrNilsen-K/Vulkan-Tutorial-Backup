@@ -10,6 +10,6 @@
 9. Create a "VkQueue"
 
 10. Create a "VkSwapchainKHR"
-11. Create a "VkImage"
+11. Create a "VkImageView"
 
 END: destroy the device and instance in reverse order of creation
