@@ -9,4 +9,6 @@
 8. Set "VK_LAYER_LUNARG_standard_validation" layer
 9. Create a "VkQueue"
 
+10. Create a "VkSwapChainKHR"
+
 END: destroy the device and instance in reverse order of creation

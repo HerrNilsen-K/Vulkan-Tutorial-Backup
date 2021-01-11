@@ -19,6 +19,7 @@ VkInstance instance;
 VkSurfaceKHR surface;
 VkDevice device;
 GLFWwindow *window;
+const uint32_t WIDTH = 400, HEIGHT = 300;
 
 //Print some stats about the graphics card
 void printStats(const VkPhysicalDevice &device)
@@ -91,6 +92,20 @@ void printStats(const VkPhysicalDevice &device)
     for (auto &&i : surfaceFormats)
     {
         std::cout << "Formats: " << i.format << std::endl;
+        std::cout << "Color Space: " << i.colorSpace << std::endl;
+    }
+
+    uint32_t amountOfPresentationModes = 0;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &amountOfPresentationModes, NULL);
+    std::vector<VkPresentModeKHR> presentModes;
+    presentModes.resize(amountOfPresentationModes);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &amountOfPresentationModes, presentModes.data());
+
+    std::cout << std::endl;
+    std::cout << "Amount of Presentation Modes: " << amountOfPresentationModes << std::endl;
+    for (auto &&i : presentModes)
+    {
+        std::cout << "Supported presentation mode: " << i << std::endl;
     }
 
     delete[] familyProperties;
@@ -104,7 +119,7 @@ void startGLFW()
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    window = glfwCreateWindow(400, 300, "Vulkan Tutorial", NULL, NULL);
+    window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan Tutorial", NULL, NULL);
 }
 
 void startVulkan()
@@ -229,6 +244,27 @@ void startVulkan()
     //Create a Queue
     VkQueue queue;
     vkGetDeviceQueue(device, 0, 0, &queue);
+
+    //Create a Swapchain info
+    VkSwapchainCreateInfoKHR swapchainCreateInfo;
+    swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    swapchainCreateInfo.pNext = NULL;
+    swapchainCreateInfo.flags = 0;
+    swapchainCreateInfo.surface = surface;
+    swapchainCreateInfo.minImageCount = 2;                                   //TODO Check if valid
+    swapchainCreateInfo.imageFormat = VK_FORMAT_B8G8R8A8_UNORM;              //TODO civ
+    swapchainCreateInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR; //TODO civ
+    swapchainCreateInfo.imageExtent = {WIDTH, HEIGHT};
+    swapchainCreateInfo.imageArrayLayers = 1;
+    swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE; //TODO civ
+    swapchainCreateInfo.queueFamilyIndexCount = 0;
+    swapchainCreateInfo.pQueueFamilyIndices = NULL;
+    swapchainCreateInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+    swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    swapchainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR; //TODO civ
+    swapchainCreateInfo.clipped = VK_TRUE;
+    swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 }
 
 void startGameLoop()
