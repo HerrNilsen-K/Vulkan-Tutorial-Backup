@@ -1,5 +1,8 @@
-#include <vulkan/vulkan.h>
+//#include <vulkan/vulkan.h>
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 #include <iostream>
+#include <cassert>
 #include <vector>
 
 #define ASSERT_VULKAN(val)                                         \
@@ -9,11 +12,13 @@
         std::cout << "ERROR: 'RESULT != VK_SUCCESS'" << std::endl; \
         std::cout << __FILE__ << ": " << __LINE__ << std::endl;    \
         std::cout << "---------------------------------------\n";  \
-        return -1;                                                 \
+        assert(false);                                             \
     }
 
 VkInstance instance;
+VkSurfaceKHR surface;
 VkDevice device;
+GLFWwindow *window;
 
 //Print some stats about the graphics card
 void printStats(const VkPhysicalDevice &device)
@@ -65,7 +70,16 @@ void printStats(const VkPhysicalDevice &device)
     std::cout << std::endl;
 }
 
-int main()
+void startGLFW()
+{
+    glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+    window = glfwCreateWindow(400, 300, "Vulkan Tutorial", NULL, NULL);
+}
+
+void startVulkan()
 {
     //Create application info
     VkApplicationInfo appInfo;
@@ -115,6 +129,9 @@ int main()
     const std::vector<const char *> validationLayers = {
         "VK_LAYER_LUNARG_standard_validation"};
 
+    uint32_t amountOfGlfwExtensions = 0;
+    auto glfwExtension = glfwGetRequiredInstanceExtensions(&amountOfGlfwExtensions);
+
     //Create instance info
     VkInstanceCreateInfo instanceInfo;
     instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -123,12 +140,14 @@ int main()
     instanceInfo.pApplicationInfo = &appInfo;
     instanceInfo.enabledLayerCount = validationLayers.size();
     instanceInfo.ppEnabledLayerNames = validationLayers.data();
-    instanceInfo.enabledExtensionCount = 0;
-    instanceInfo.ppEnabledExtensionNames = NULL;
+    instanceInfo.enabledExtensionCount = amountOfGlfwExtensions;
+    instanceInfo.ppEnabledExtensionNames = glfwExtension;
 
     //Create instance
     VkResult result = vkCreateInstance(&instanceInfo, NULL, &instance);
     ASSERT_VULKAN(result);
+
+    result = glfwCreateWindowSurface(instance, window, NULL, &surface);
 
     //Get amount of physical devices
     uint32_t amountOfPhysicalDevices = 0;
@@ -182,11 +201,41 @@ int main()
     //Create a Queue
     VkQueue queue;
     vkGetDeviceQueue(device, 0, 0, &queue);
+}
 
+void startGameLoop()
+{
+    while (!glfwWindowShouldClose(window))
+    {
+        //glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+}
+
+void shutdownVulkan()
+{
     //Cleanup Vulkan
     vkDeviceWaitIdle(device);
     vkDestroyDevice(device, NULL);
+    vkDestroySurfaceKHR(instance, surface, NULL);
     vkDestroyInstance(instance, NULL);
+}
+
+void shutdownGLFW()
+{
+    glfwDestroyWindow(window);
+    glfwTerminate();
+}
+
+int main()
+{
+    startGLFW();
+    startVulkan();
+
+    startGameLoop();
+
+    shutdownVulkan();
+    shutdownGLFW();
 
     return 0;
 }
