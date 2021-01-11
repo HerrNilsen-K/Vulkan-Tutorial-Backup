@@ -18,7 +18,9 @@
 VkInstance instance;
 VkSurfaceKHR surface;
 VkDevice device;
+VkSwapchainKHR swapchain;
 GLFWwindow *window;
+
 const uint32_t WIDTH = 400, HEIGHT = 300;
 
 //Print some stats about the graphics card
@@ -223,6 +225,9 @@ void startVulkan()
 
     VkPhysicalDeviceFeatures usedFeatures = {};
 
+    const std::vector<const char *> deviceExtensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
     //Create device info
     VkDeviceCreateInfo devicesCreateInfo;
     devicesCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -232,8 +237,8 @@ void startVulkan()
     devicesCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
     devicesCreateInfo.enabledLayerCount = 0;
     devicesCreateInfo.ppEnabledLayerNames = NULL;
-    devicesCreateInfo.enabledExtensionCount = 0;
-    devicesCreateInfo.ppEnabledExtensionNames = NULL;
+    devicesCreateInfo.enabledExtensionCount = deviceExtensions.size();
+    devicesCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
     devicesCreateInfo.pEnabledFeatures = &usedFeatures;
 
     //Craete device
@@ -244,6 +249,16 @@ void startVulkan()
     //Create a Queue
     VkQueue queue;
     vkGetDeviceQueue(device, 0, 0, &queue);
+
+    VkBool32 surfaceSupport = false;
+    result = vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice[0], 0, surface, &surfaceSupport);
+    ASSERT_VULKAN(result);
+
+    if (!surfaceSupport)
+    {
+        std::cerr << "Surface not supported!" << std::endl;
+        assert(false);
+    }
 
     //Create a Swapchain info
     VkSwapchainCreateInfoKHR swapchainCreateInfo;
@@ -265,6 +280,10 @@ void startVulkan()
     swapchainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR; //TODO civ
     swapchainCreateInfo.clipped = VK_TRUE;
     swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+
+    //Creatinf the Swapchain
+    result = vkCreateSwapchainKHR(device, &swapchainCreateInfo, NULL, &swapchain);
+    ASSERT_VULKAN(result);
 }
 
 void startGameLoop()
@@ -280,6 +299,7 @@ void shutdownVulkan()
 {
     //Cleanup Vulkan
     vkDeviceWaitIdle(device);
+    vkDestroySwapchainKHR(device, swapchain, NULL);
     vkDestroyDevice(device, NULL);
     vkDestroySurfaceKHR(instance, surface, NULL);
     vkDestroyInstance(instance, NULL);
