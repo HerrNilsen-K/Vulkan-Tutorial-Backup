@@ -80,6 +80,19 @@ void printStats(const VkPhysicalDevice &device)
     std::cout << "\tSupported Composite Alpha:    " << surfaceCapabilities.supportedCompositeAlpha << std::endl;
     std::cout << "\tSupported Usage Flags:        " << surfaceCapabilities.supportedUsageFlags << std::endl;
 
+    uint32_t amountOfFormats = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &amountOfFormats, NULL);
+    std::vector<VkSurfaceFormatKHR> surfaceFormats;
+    surfaceFormats.resize(amountOfFormats);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &amountOfFormats, surfaceFormats.data());
+
+    std::cout << std::endl;
+    std::cout << "Amount of Formats: " << amountOfFormats << std::endl;
+    for (auto &&i : surfaceFormats)
+    {
+        std::cout << "Formats: " << i.format << std::endl;
+    }
+
     delete[] familyProperties;
 
     std::cout << std::endl;
