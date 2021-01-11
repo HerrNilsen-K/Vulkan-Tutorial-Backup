@@ -284,6 +284,31 @@ void startVulkan()
     //Creatinf the Swapchain
     result = vkCreateSwapchainKHR(device, &swapchainCreateInfo, NULL, &swapchain);
     ASSERT_VULKAN(result);
+
+    uint32_t amountOfImagesInSwapchain = 0;
+    vkGetSwapchainImagesKHR(device, swapchain, &amountOfImagesInSwapchain, NULL);
+    std::vector<VkImage> swapchainImages;
+    swapchainImages.resize(amountOfImagesInSwapchain);
+    result = vkGetSwapchainImagesKHR(device, swapchain, &amountOfImagesInSwapchain, swapchainImages.data());
+    ASSERT_VULKAN(result);
+
+    //Create image view info
+    VkImageViewCreateInfo imageViewCreateInfo;
+    imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    imageViewCreateInfo.pNext = NULL;
+    imageViewCreateInfo.flags = 0;
+    imageViewCreateInfo.image = swapchainImages[0];
+    imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    imageViewCreateInfo.format = VK_FORMAT_B8G8R8A8_UNORM; //TODO civ
+    imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+    imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+    imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+    imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+    imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+    imageViewCreateInfo.subresourceRange.levelCount = 1;
+    imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+    imageViewCreateInfo.subresourceRange.layerCount = 1;
 }
 
 void startGameLoop()
