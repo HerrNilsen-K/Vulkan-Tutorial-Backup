@@ -65,6 +65,21 @@ void printStats(const VkPhysicalDevice &device)
         std::cout << "Min image Timestamp Grabularity: " << width << ", " << height << ", " << depth << std::endl;
     }
 
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &surfaceCapabilities);
+
+    std::cout << "\tSurface capabilities:         " << std::endl;
+    std::cout << "\tMin Image Count:              " << surfaceCapabilities.minImageCount << std::endl;
+    std::cout << "\tMax Image Count:              " << surfaceCapabilities.maxImageCount << std::endl;
+    std::cout << "\tCurrent Extent:               " << surfaceCapabilities.currentExtent.width << '/' << surfaceCapabilities.currentExtent.height << std::endl;
+    std::cout << "\tMin Image Extent:             " << surfaceCapabilities.minImageExtent.width << '/' << surfaceCapabilities.minImageExtent.height << std::endl;
+    std::cout << "\tMax Image Extent:             " << surfaceCapabilities.maxImageExtent.width << '/' << surfaceCapabilities.maxImageExtent.height << std::endl;
+    std::cout << "\tMax Image Array Layers:       " << surfaceCapabilities.maxImageArrayLayers << std::endl;
+    std::cout << "\tSupported Transforms:         " << surfaceCapabilities.supportedTransforms << std::endl;
+    std::cout << "\tCurrent Transforms:           " << surfaceCapabilities.currentTransform << std::endl;
+    std::cout << "\tSupported Composite Alpha:    " << surfaceCapabilities.supportedCompositeAlpha << std::endl;
+    std::cout << "\tSupported Usage Flags:        " << surfaceCapabilities.supportedUsageFlags << std::endl;
+
     delete[] familyProperties;
 
     std::cout << std::endl;
