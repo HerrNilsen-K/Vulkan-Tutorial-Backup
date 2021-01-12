@@ -16,7 +16,12 @@ program: $(objects)
   
 %.o : %.cpp
 	$(cc) $(flags) -c -o $@ $<
-  
+
+#Create Spir-V file
+shader:
+	glslangValidator -V shader.vert
+	glslangValidator -V shader.frag
+
 #Delete all object files
 #WARNING! The whole project needs to be recompiled after this
 clean:
