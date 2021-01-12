@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cassert>
 #include <vector>
+#include <fstream>
 
 #define ASSERT_VULKAN(val)                                         \
     if (val != VK_SUCCESS)                                         \
@@ -115,6 +116,21 @@ void printStats(const VkPhysicalDevice &device)
     delete[] familyProperties;
 
     std::cout << std::endl;
+}
+
+std::vector<char> readFile(const std::string &&filename)
+{
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+
+    if (!file)
+    {
+        throw std::runtime_error("Failed to open file");
+    }
+    size_t fileSize = (size_t)file.tellg();
+    std::vector<char> fileBuffer(fileSize);
+    file.seekg(0);
+    file.read(fileBuffer.data(), fileSize);
+    return fileBuffer;
 }
 
 void startGLFW()
@@ -315,8 +331,13 @@ void startVulkan()
         imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
         imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-        vkCreateImageView(device, &imageViewCreateInfo, NULL, &imageViews[i]);
+        result = vkCreateImageView(device, &imageViewCreateInfo, NULL, &imageViews[i]);
+        ASSERT_VULKAN(result);
     }
+
+    auto shaderCodeVert = readFile("vert.spv");
+    auto shaderCodeFrag = readFile("frag.spv");
+    
 }
 
 void startGameLoop()
