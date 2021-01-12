@@ -11,5 +11,6 @@
 
 10. Create a "VkSwapchainKHR"
 11. Create a "VkImageView"
+12. Create a VkShaderModule"
 
 END: destroy the device and instance in reverse order of creation
