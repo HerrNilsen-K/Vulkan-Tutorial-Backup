@@ -405,6 +405,15 @@ void startVulkan()
     VkRect2D scissor;
     scissor.offset = {0, 0};
     scissor.extent = {WIDTH, HEIGHT};
+
+    VkPipelineViewportStateCreateInfo viewportStateCreateInfo;
+    viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewportStateCreateInfo.pNext = NULL;
+    viewportStateCreateInfo.flags = 0;
+    viewportStateCreateInfo.viewportCount = 1;
+    viewportStateCreateInfo.pViewports = &viewport;
+    viewportStateCreateInfo.scissorCount = 1;
+    viewportStateCreateInfo.pScissors = &scissor;
 }
 
 void startGameLoop()
