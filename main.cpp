@@ -376,6 +376,15 @@ void startVulkan()
 
     VkPipelineShaderStageCreateInfo shaderStages[] = {shaderStageCreateInfoVert,
                                                       shaderStageCreateInfoFrag};
+
+    VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo;
+    vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertexInputCreateInfo.pNext = NULL;
+    vertexInputCreateInfo.flags = 0;
+    vertexInputCreateInfo.vertexBindingDescriptionCount = 0;
+    vertexInputCreateInfo.pVertexBindingDescriptions = NULL;
+    vertexInputCreateInfo.vertexAttributeDescriptionCount = 0;
+    vertexInputCreateInfo.pVertexAttributeDescriptions = NULL;
 }
 
 void startGameLoop()
