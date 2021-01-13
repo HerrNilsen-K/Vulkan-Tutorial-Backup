@@ -425,7 +425,7 @@ void startVulkan()
     rasterizationCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizationCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rasterizationCreateInfo.depthBiasEnable = VK_FALSE;
-    rasterizationCreateInfo.depthBiasConstantFactor =  = 0.f;
+    rasterizationCreateInfo.depthBiasConstantFactor = 0.f;
     rasterizationCreateInfo.depthBiasClamp = 0.f;
     rasterizationCreateInfo.depthBiasSlopeFactor = 0.f;
     rasterizationCreateInfo.lineWidth = 1.f;
