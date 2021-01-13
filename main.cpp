@@ -385,6 +385,13 @@ void startVulkan()
     vertexInputCreateInfo.pVertexBindingDescriptions = NULL;
     vertexInputCreateInfo.vertexAttributeDescriptionCount = 0;
     vertexInputCreateInfo.pVertexAttributeDescriptions = NULL;
+
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo;
+    inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    inputAssemblyCreateInfo.pNext = NULL;
+    inputAssemblyCreateInfo.flags = 0;
+    inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
 }
 
 void startGameLoop()
