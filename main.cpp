@@ -414,6 +414,21 @@ void startVulkan()
     viewportStateCreateInfo.pViewports = &viewport;
     viewportStateCreateInfo.scissorCount = 1;
     viewportStateCreateInfo.pScissors = &scissor;
+
+    VkPipelineRasterizationStateCreateInfo rasterizationCreateInfo;
+    rasterizationCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterizationCreateInfo.pNext = NULL;
+    rasterizationCreateInfo.flags = 0;
+    rasterizationCreateInfo.depthClampEnable = VK_FALSE;
+    rasterizationCreateInfo.rasterizerDiscardEnable = VK_FALSE;
+    rasterizationCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterizationCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+    rasterizationCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    rasterizationCreateInfo.depthBiasEnable = VK_FALSE;
+    rasterizationCreateInfo.depthBiasConstantFactor =  = 0.f;
+    rasterizationCreateInfo.depthBiasClamp = 0.f;
+    rasterizationCreateInfo.depthBiasSlopeFactor = 0.f;
+    rasterizationCreateInfo.lineWidth = 1.f;
 }
 
 void startGameLoop()
