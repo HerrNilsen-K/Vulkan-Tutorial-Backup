@@ -401,6 +401,10 @@ void startVulkan()
     viewport.height = HEIGHT;
     viewport.minDepth = 0.f;
     viewport.maxDepth = 0.f;
+
+    VkRect2D scissor;
+    scissor.offset = {0, 0};
+    scissor.extent = {WIDTH, HEIGHT};
 }
 
 void startGameLoop()
