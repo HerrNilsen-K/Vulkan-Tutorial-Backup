@@ -392,6 +392,15 @@ void startVulkan()
     inputAssemblyCreateInfo.flags = 0;
     inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     inputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
+
+    //Create a viewport
+    VkViewport viewport;
+    viewport.x = 0.f;
+    viewport.y = 0.f;
+    viewport.width = WIDTH;
+    viewport.height = HEIGHT;
+    viewport.minDepth = 0.f;
+    viewport.maxDepth = 0.f;
 }
 
 void startGameLoop()
