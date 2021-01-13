@@ -429,6 +429,19 @@ void startVulkan()
     rasterizationCreateInfo.depthBiasClamp = 0.f;
     rasterizationCreateInfo.depthBiasSlopeFactor = 0.f;
     rasterizationCreateInfo.lineWidth = 1.f;
+
+    VkPipelineMultisampleStateCreateInfo multisampleCreateInfo;
+    multisampleCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisampleCreateInfo.pNext = NULL;
+    multisampleCreateInfo.flags = 0;
+    multisampleCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    multisampleCreateInfo.sampleShadingEnable = VK_FALSE;
+    multisampleCreateInfo.minSampleShading = 1.f;
+    multisampleCreateInfo.pSampleMask = NULL;
+    multisampleCreateInfo.alphaToCoverageEnable = VK_FALSE;
+    multisampleCreateInfo.alphaToOneEnable = VK_FALSE;
+
+
 }
 
 void startGameLoop()
