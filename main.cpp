@@ -24,6 +24,7 @@ VkShaderModule shaderModuleVert;
 VkShaderModule shaderModuleFrag;
 VkImageView *imageViews;
 GLFWwindow *window;
+VkPipelineLayout pipelineLayout;
 
 uint32_t amountOfImagesInSwapchain = 0;
 const uint32_t WIDTH = 400, HEIGHT = 300;
@@ -402,10 +403,12 @@ void startVulkan()
     viewport.minDepth = 0.f;
     viewport.maxDepth = 0.f;
 
+    //Create a scissor
     VkRect2D scissor;
     scissor.offset = {0, 0};
     scissor.extent = {WIDTH, HEIGHT};
 
+    //Create a viewport state with a viewport and scissor
     VkPipelineViewportStateCreateInfo viewportStateCreateInfo;
     viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     viewportStateCreateInfo.pNext = NULL;
@@ -415,6 +418,7 @@ void startVulkan()
     viewportStateCreateInfo.scissorCount = 1;
     viewportStateCreateInfo.pScissors = &scissor;
 
+    //Create a Rasterizater state
     VkPipelineRasterizationStateCreateInfo rasterizationCreateInfo;
     rasterizationCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizationCreateInfo.pNext = NULL;
@@ -430,6 +434,7 @@ void startVulkan()
     rasterizationCreateInfo.depthBiasSlopeFactor = 0.f;
     rasterizationCreateInfo.lineWidth = 1.f;
 
+    //Create a Multisampler state
     VkPipelineMultisampleStateCreateInfo multisampleCreateInfo;
     multisampleCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampleCreateInfo.pNext = NULL;
@@ -441,7 +446,40 @@ void startVulkan()
     multisampleCreateInfo.alphaToCoverageEnable = VK_FALSE;
     multisampleCreateInfo.alphaToOneEnable = VK_FALSE;
 
+    VkPipelineColorBlendAttachmentState colorBlendAttachment;
+    colorBlendAttachment.blendEnable = VK_TRUE;
+    colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 
+    VkPipelineColorBlendStateCreateInfo colorBlendCreateInfo;
+    colorBlendCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    colorBlendCreateInfo.pNext = NULL;
+    colorBlendCreateInfo.flags = 0;
+    colorBlendCreateInfo.logicOpEnable = VK_FALSE;
+    colorBlendCreateInfo.logicOp = VK_LOGIC_OP_NO_OP;
+    colorBlendCreateInfo.attachmentCount = 1;
+    colorBlendCreateInfo.pAttachments = &colorBlendAttachment;
+    colorBlendCreateInfo.blendConstants[0] = 0.f;
+    colorBlendCreateInfo.blendConstants[1] = 0.f;
+    colorBlendCreateInfo.blendConstants[2] = 0.f;
+    colorBlendCreateInfo.blendConstants[3] = 0.f;
+
+    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo;
+    pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutCreateInfo.pNext = NULL;
+    pipelineLayoutCreateInfo.flags = 0;
+    pipelineLayoutCreateInfo.setLayoutCount = 0;
+    pipelineLayoutCreateInfo.pSetLayouts = NULL;
+    pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+    pipelineLayoutCreateInfo.pPushConstantRanges = NULL;
+
+    result = vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, NULL, &pipelineLayout);
+    ASSERT_VULKAN(result);
 }
 
 void startGameLoop()
@@ -463,6 +501,7 @@ void shutdownVulkan()
         vkDestroyImageView(device, imageViews[i], NULL);
     }
     delete[] imageViews;
+    vkDestroyPipelineLayout(device, pipelineLayout, NULL);
     vkDestroyShaderModule(device, shaderModuleVert, NULL);
     vkDestroyShaderModule(device, shaderModuleFrag, NULL);
     vkDestroySwapchainKHR(device, swapchain, NULL);

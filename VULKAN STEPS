@@ -11,6 +11,6 @@
 
 10. Create a "VkSwapchainKHR"
 11. Create a "VkImageView"
-12. Create something with pipelines
+12. Create a "VkPipelineLayout"
 
 END: destroy the device and instance in reverse order of creation
