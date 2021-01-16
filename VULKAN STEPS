@@ -1,16 +1,14 @@
-1. Create an "VkApplicationInfo"
-2. Create an "VkInstanceCreateInfo"
-3. Create an "VkInstance"
+ Create an "VkInstance"
 
-4. Get amount of physical devices 
-5. Create an "VkDeviceQueueCreateInfo"
-6. Create an "VkDeviceCreateInfo"
-7. Create an "VkDevice"
-8. Set "VK_LAYER_LUNARG_standard_validation" layer
-9. Create a "VkQueue"
+Get amount of physical devices 
+Create an "VkDeviceQueueCreateInfo"
+Create an "VkDeviceCreateInfo"
+Create an "VkDevice"
+Set "VK_LAYER_LUNARG_standard_validation" layer
+Create a "VkQueue"
 
-10. Create a "VkSwapchainKHR"
-11. Create a "VkImageView"
-12. Create a "VkPipelineLayout"
+Create a "VkSwapchainKHR"
+Create a "VkImageView"
+Create a "VkPipelineLayout"
 
-END: destroy the device and instance in reverse order of creation
+END: call "vkDeviceWaitIdle" and destroy the device, instance, swapchain in reverse order of creation

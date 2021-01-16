@@ -207,6 +207,8 @@ void startVulkan()
 
     const std::vector<const char *> validationLayers = {
         "VK_LAYER_LUNARG_standard_validation"};
+        //VK_LAYER_LUNARG_standard_validation may needs to be relpaced with:
+        //VK_LAYER_KHRONOS_validation 
 
     uint32_t amountOfGlfwExtensions = 0;
     auto glfwExtension = glfwGetRequiredInstanceExtensions(&amountOfGlfwExtensions);
