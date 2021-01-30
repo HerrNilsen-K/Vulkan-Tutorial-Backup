@@ -9,7 +9,7 @@ libPath =
 libs = -lglfw -lvulkan -ldl -lpthread -lX11 -lXrandr
 
 #Compile, link and execute the program
-all: program run
+all: program shader run
 
 program: $(objects)
 	$(cc) -o $(appName) $^ $(libPath) $(libs)
