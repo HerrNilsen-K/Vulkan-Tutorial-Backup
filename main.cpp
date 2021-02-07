@@ -13,14 +13,14 @@
         std::cout << "---------------------------------------\n";  \
         std::cout << "ERROR: 'RESULT != VK_SUCCESS'" << std::endl; \
         std::cout << __FILE__ << ": " << __LINE__ << std::endl;    \
+        std::cout << val << std::endl;                             \
         std::cout << "---------------------------------------\n";  \
-        assert(false);                                             \
     }
 
 VkInstance instance;
 VkSurfaceKHR surface;
 VkDevice device;
-VkSwapchainKHR swapchain;
+VkSwapchainKHR swapchain = VK_NULL_HANDLE;
 VkShaderModule shaderModuleVert;
 VkShaderModule shaderModuleFrag;
 std::vector<VkImageView> imageViews;
@@ -36,7 +36,7 @@ VkSemaphore semaphoreRenderingDone;
 VkQueue queue;
 
 uint32_t amountOfImagesInSwapchain = 0;
-const uint32_t WIDTH = 400, HEIGHT = 300;
+uint32_t width = 400, height = 300;
 const VkFormat ourFormat = VK_FORMAT_B8G8R8A8_SRGB;
 
 //Print some stats about the graphics card
@@ -146,13 +146,37 @@ std::vector<char> readFile(const std::string &&filename)
     return fileBuffer;
 }
 
+void recreateSwapchain();
+
+std::vector<VkPhysicalDevice> getAllPhysicalDevices();
+
+void onWindowResized(GLFWwindow *window, int w, int h)
+{
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    auto physicalDevices = getAllPhysicalDevices();
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevices[0], surface, &surfaceCapabilities);
+
+    if (w > surfaceCapabilities.maxImageExtent.width)
+        w = surfaceCapabilities.maxImageExtent.width;
+    if (h > surfaceCapabilities.maxImageExtent.height)
+        h = surfaceCapabilities.maxImageExtent.height;
+    if (width == 0 || height == 0)
+        return; //Do nothing!
+
+    width = w;
+    height = h;
+
+    recreateSwapchain();
+}
+
 void startGLFW()
 {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    //glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan Tutorial", NULL, NULL);
+    window = glfwCreateWindow(width, height, "Vulkan Tutorial", NULL, NULL);
+    glfwSetWindowSizeCallback(window, onWindowResized);
 }
 
 void createShaderModule(const std::vector<char> &code, VkShaderModule *shaderModule)
@@ -168,11 +192,7 @@ void createShaderModule(const std::vector<char> &code, VkShaderModule *shaderMod
     ASSERT_VULKAN(result);
 }
 
-void createInstance(){
-    
-}
-
-void startVulkan()
+void createInstance()
 {
     //Create application info
     VkApplicationInfo appInfo;
@@ -184,46 +204,9 @@ void startVulkan()
     appInfo.engineVersion = VK_MAKE_VERSION(0, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_2;
 
-    //Get and print Layers
-    std::vector<VkLayerProperties> layers;
-    uint32_t amountOfLayers = 0;
-    vkEnumerateInstanceLayerProperties(&amountOfLayers, NULL);
-    layers.resize(amountOfLayers);
-    vkEnumerateInstanceLayerProperties(&amountOfLayers, layers.data());
-
-    std::cout << "Amount of layers: " << amountOfLayers << std::endl;
-    for (int i = 0; i < amountOfLayers; i++)
-    {
-        std::cout << "Layer: " << i << std::endl;
-        std::cout << "\tName:         " << layers[i].layerName << std::endl;
-        std::cout << "\tSpec version: " << layers[i].specVersion << std::endl;
-        std::cout << "\tImpl Version: " << layers[i].implementationVersion << std::endl;
-        std::cout << "\tDescription:  " << layers[i].description << std::endl;
-        std::cout << std::endl;
-    }
-
-    //Get and print Extensions
-    uint32_t amountOfExtensions = 0;
-    vkEnumerateInstanceExtensionProperties(NULL, &amountOfExtensions, NULL);
-    std::vector<VkExtensionProperties> extensions;
-    extensions.resize(amountOfExtensions);
-    vkEnumerateInstanceExtensionProperties(NULL, &amountOfExtensions, extensions.data());
-
-    std::cout << std::endl;
-    std::cout << "Amount of Extensions: " << amountOfExtensions << std::endl;
-    for (int i = 0; i < amountOfExtensions; i++)
-    {
-        std::cout << std::endl;
-        std::cout << "Name: " << extensions[i].extensionName << std::endl;
-        std::cout << "Spec Version: " << extensions[i].specVersion << std::endl;
-    }
-    std::cout << std::endl;
-
     const std::vector<const char *> validationLayers = {
         "VK_LAYER_KHRONOS_validation"};
-    //VK_LAYER_LUNARG_standard_validation may needs to be relpaced with:
-    //
-    //VK_LAYER_LUNARG_standard_validation
+
     uint32_t amountOfGlfwExtensions = 0;
     auto glfwExtension = glfwGetRequiredInstanceExtensions(&amountOfGlfwExtensions);
 
@@ -241,10 +224,56 @@ void startVulkan()
     //Create instance
     VkResult result = vkCreateInstance(&instanceInfo, NULL, &instance);
     ASSERT_VULKAN(result);
+}
 
+void printInstanceLayers()
+{
+    std::vector<VkLayerProperties> layers;
+    uint32_t amountOfLayers = 0;
+    vkEnumerateInstanceLayerProperties(&amountOfLayers, NULL);
+    layers.resize(amountOfLayers);
+    vkEnumerateInstanceLayerProperties(&amountOfLayers, layers.data());
+
+    std::cout << "Amount of layers: " << amountOfLayers << std::endl;
+    for (int i = 0; i < amountOfLayers; i++)
+    {
+        std::cout << "Layer: " << i << std::endl;
+        std::cout << "\tName:         " << layers[i].layerName << std::endl;
+        std::cout << "\tSpec version: " << layers[i].specVersion << std::endl;
+        std::cout << "\tImpl Version: " << layers[i].implementationVersion << std::endl;
+        std::cout << "\tDescription:  " << layers[i].description << std::endl;
+        std::cout << std::endl;
+    }
+}
+
+void printInstanceExtensions()
+{
+    uint32_t amountOfExtensions = 0;
+    vkEnumerateInstanceExtensionProperties(NULL, &amountOfExtensions, NULL);
+    std::vector<VkExtensionProperties> extensions;
+    extensions.resize(amountOfExtensions);
+    vkEnumerateInstanceExtensionProperties(NULL, &amountOfExtensions, extensions.data());
+
+    std::cout << std::endl;
+    std::cout << "Amount of Extensions: " << amountOfExtensions << std::endl;
+    for (int i = 0; i < amountOfExtensions; i++)
+    {
+        std::cout << std::endl;
+        std::cout << "Name: " << extensions[i].extensionName << std::endl;
+        std::cout << "Spec Version: " << extensions[i].specVersion << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+void createGlfwWindowSurface()
+{
+    VkResult result;
     result = glfwCreateWindowSurface(instance, window, NULL, &surface);
+}
 
-    //Get amount of physical devices
+std::vector<VkPhysicalDevice> getAllPhysicalDevices()
+{
+    VkResult result;
     uint32_t amountOfPhysicalDevices = 0;
     result = vkEnumeratePhysicalDevices(instance, &amountOfPhysicalDevices, NULL);
     ASSERT_VULKAN(result);
@@ -255,13 +284,32 @@ void startVulkan()
     result = vkEnumeratePhysicalDevices(instance, &amountOfPhysicalDevices, physicalDevice.data());
 
     ASSERT_VULKAN(result);
-
-    //Print informations about the graphics card/driver
-    for (int i = 0; i < amountOfPhysicalDevices; i++)
+    static bool first = true;
+    if (first)
     {
-        printStats(*physicalDevice.data());
+        for (int i = 0; i < amountOfPhysicalDevices; i++)
+        {
+            printStats(*physicalDevice.data());
+        }
+        first = false;
     }
 
+    return physicalDevice;
+}
+
+void printStatsOfAllPhysicalDevices()
+{
+    auto physicalDevices = getAllPhysicalDevices();
+
+    for (int i = 0; i < physicalDevices.size(); i++)
+    {
+        printStats(*physicalDevices.data());
+    }
+}
+
+void createLogicalDevice()
+{
+    VkResult result;
     float queuePrios[] = {1.0f, 1.0f, 1.0f, 1.0f};
 
     //Create device queue info
@@ -293,23 +341,25 @@ void startVulkan()
 
     //Craete device
     //TODO pick "best device" instead of first device
-    result = vkCreateDevice(physicalDevice[0], &devicesCreateInfo, NULL, &device);
+    result = vkCreateDevice(getAllPhysicalDevices()[0], &devicesCreateInfo, NULL, &device);
     ASSERT_VULKAN(result);
+}
 
-    //Create a Queue
+void createQueue()
+{
     vkGetDeviceQueue(device, 0, 0, &queue);
+}
 
+void checkSurfaceSupport()
+{
+    VkResult result;
     VkBool32 surfaceSupport = false;
-    result = vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice[0], 0, surface, &surfaceSupport);
-    ASSERT_VULKAN(result);
+    result = vkGetPhysicalDeviceSurfaceSupportKHR(getAllPhysicalDevices()[0], 0, surface, &surfaceSupport);
+    ASSERT_VULKAN(result)
+}
 
-    if (!surfaceSupport)
-    {
-        std::cerr << "Surface not supported!" << std::endl;
-        assert(false);
-    }
-
-    //Create a Swapchain info
+void createSwapchain()
+{
     VkSwapchainCreateInfoKHR swapchainCreateInfo;
     swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     swapchainCreateInfo.pNext = NULL;
@@ -318,7 +368,7 @@ void startVulkan()
     swapchainCreateInfo.minImageCount = 2;                                   //TODO Check if valid
     swapchainCreateInfo.imageFormat = ourFormat;                             //TODO civ
     swapchainCreateInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR; //TODO civ
-    swapchainCreateInfo.imageExtent = {WIDTH, HEIGHT};
+    swapchainCreateInfo.imageExtent = {width, height};
     swapchainCreateInfo.imageArrayLayers = 1;
     swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE; //TODO civ
@@ -328,16 +378,19 @@ void startVulkan()
     swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     swapchainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR; //TODO civ
     swapchainCreateInfo.clipped = VK_TRUE;
-    swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+    swapchainCreateInfo.oldSwapchain = swapchain;
 
     //Creatinf the Swapchain
-    result = vkCreateSwapchainKHR(device, &swapchainCreateInfo, NULL, &swapchain);
+    VkResult result = vkCreateSwapchainKHR(device, &swapchainCreateInfo, NULL, &swapchain);
     ASSERT_VULKAN(result);
+}
 
+void createImageViews()
+{
     vkGetSwapchainImagesKHR(device, swapchain, &amountOfImagesInSwapchain, NULL);
     std::vector<VkImage> swapchainImages;
     swapchainImages.resize(amountOfImagesInSwapchain);
-    result = vkGetSwapchainImagesKHR(device, swapchain, &amountOfImagesInSwapchain, swapchainImages.data());
+    VkResult result = vkGetSwapchainImagesKHR(device, swapchain, &amountOfImagesInSwapchain, swapchainImages.data());
     ASSERT_VULKAN(result);
 
     imageViews.resize(amountOfImagesInSwapchain);
@@ -364,7 +417,63 @@ void startVulkan()
         result = vkCreateImageView(device, &imageViewCreateInfo, NULL, &imageViews.data()[i]);
         ASSERT_VULKAN(result);
     }
+}
 
+void createRenderPass()
+{
+    VkAttachmentDescription attachmentDescription;
+    attachmentDescription.flags = 0;
+    attachmentDescription.format = ourFormat;
+    attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+    attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    VkAttachmentReference attachmentReference;
+    attachmentReference.attachment = 0;
+    attachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpassDescription;
+    subpassDescription.flags = 0;
+    subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpassDescription.inputAttachmentCount = 0;
+    subpassDescription.pInputAttachments = NULL;
+    subpassDescription.colorAttachmentCount = 1;
+    subpassDescription.pColorAttachments = &attachmentReference;
+    subpassDescription.pResolveAttachments = NULL;
+    subpassDescription.pDepthStencilAttachment = NULL;
+    subpassDescription.preserveAttachmentCount = 0;
+    subpassDescription.pPreserveAttachments = NULL;
+
+    VkSubpassDependency subpassDependency;
+    subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    subpassDependency.dstSubpass = 0;
+    subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpassDependency.srcAccessMask = 0;
+    subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    subpassDependency.dependencyFlags = 0;
+
+    VkRenderPassCreateInfo renderPassCreateInfo;
+    renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassCreateInfo.pNext = NULL;
+    renderPassCreateInfo.flags = 0;
+    renderPassCreateInfo.attachmentCount = 1;
+    renderPassCreateInfo.pAttachments = &attachmentDescription;
+    renderPassCreateInfo.subpassCount = 1;
+    renderPassCreateInfo.pSubpasses = &subpassDescription;
+    renderPassCreateInfo.dependencyCount = 1;
+    renderPassCreateInfo.pDependencies = &subpassDependency;
+
+    VkResult result = vkCreateRenderPass(device, &renderPassCreateInfo, NULL, &renderPass);
+    ASSERT_VULKAN(result);
+}
+
+void createPipeline()
+{
     auto shaderCodeVert = readFile("vert.spv");
     auto shaderCodeFrag = readFile("frag.spv");
 
@@ -412,15 +521,15 @@ void startVulkan()
     VkViewport viewport;
     viewport.x = 0.f;
     viewport.y = 0.f;
-    viewport.width = WIDTH;
-    viewport.height = HEIGHT;
+    viewport.width = width;
+    viewport.height = height;
     viewport.minDepth = 0.f;
     viewport.maxDepth = 0.f;
 
     //Create a scissor
     VkRect2D scissor;
     scissor.offset = {0, 0};
-    scissor.extent = {WIDTH, HEIGHT};
+    scissor.extent = {width, height};
 
     //Create a viewport state with a viewport and scissor
     VkPipelineViewportStateCreateInfo viewportStateCreateInfo;
@@ -492,57 +601,7 @@ void startVulkan()
     pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
     pipelineLayoutCreateInfo.pPushConstantRanges = NULL;
 
-    result = vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, NULL, &pipelineLayout);
-    ASSERT_VULKAN(result);
-
-    VkAttachmentDescription attachmentDescription;
-    attachmentDescription.flags = 0;
-    attachmentDescription.format = ourFormat;
-    attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
-    attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-    VkAttachmentReference attachmentReference;
-    attachmentReference.attachment = 0;
-    attachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-    VkSubpassDescription subpassDescription;
-    subpassDescription.flags = 0;
-    subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpassDescription.inputAttachmentCount = 0;
-    subpassDescription.pInputAttachments = NULL;
-    subpassDescription.colorAttachmentCount = 1;
-    subpassDescription.pColorAttachments = &attachmentReference;
-    subpassDescription.pResolveAttachments = NULL;
-    subpassDescription.pDepthStencilAttachment = NULL;
-    subpassDescription.preserveAttachmentCount = 0;
-    subpassDescription.pPreserveAttachments = NULL;
-
-    VkSubpassDependency subpassDependency;
-    subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    subpassDependency.dstSubpass = 0;
-    subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    subpassDependency.srcAccessMask = 0;
-    subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    subpassDependency.dependencyFlags = 0;
-
-    VkRenderPassCreateInfo renderPassCreateInfo;
-    renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassCreateInfo.pNext = NULL;
-    renderPassCreateInfo.flags = 0;
-    renderPassCreateInfo.attachmentCount = 1;
-    renderPassCreateInfo.pAttachments = &attachmentDescription;
-    renderPassCreateInfo.subpassCount = 1;
-    renderPassCreateInfo.pSubpasses = &subpassDescription;
-    renderPassCreateInfo.dependencyCount = 1;
-    renderPassCreateInfo.pDependencies = &subpassDependency;
-
-    result = vkCreateRenderPass(device, &renderPassCreateInfo, NULL, &renderPass);
+    VkResult result = vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, NULL, &pipelineLayout);
     ASSERT_VULKAN(result);
 
     VkGraphicsPipelineCreateInfo pipelineCreateInfo;
@@ -568,7 +627,10 @@ void startVulkan()
 
     result = vkCreateGraphicsPipelines(device, NULL, 1, &pipelineCreateInfo, NULL, &pipeline);
     ASSERT_VULKAN(result);
+}
 
+void createFramebuffers()
+{
     for (size_t i = 0; i < amountOfImagesInSwapchain; i++)
     {
         VkFramebufferCreateInfo framebufferCreateInfo;
@@ -578,24 +640,30 @@ void startVulkan()
         framebufferCreateInfo.renderPass = renderPass;
         framebufferCreateInfo.attachmentCount = 1;
         framebufferCreateInfo.pAttachments = &(imageViews[i]);
-        framebufferCreateInfo.width = WIDTH;
-        framebufferCreateInfo.height = HEIGHT;
+        framebufferCreateInfo.width = width;
+        framebufferCreateInfo.height = height;
         framebufferCreateInfo.layers = 1;
 
         framebuffers.resize(amountOfImagesInSwapchain);
-        result = vkCreateFramebuffer(device, &framebufferCreateInfo, NULL, &(framebuffers.data()[i]));
+        VkResult result = vkCreateFramebuffer(device, &framebufferCreateInfo, NULL, &(framebuffers.data()[i]));
         ASSERT_VULKAN(result);
     }
+}
 
+void createCommandPool()
+{
     VkCommandPoolCreateInfo commandPoolCreateInfo;
     commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     commandPoolCreateInfo.pNext = NULL;
     commandPoolCreateInfo.flags = 0;
     commandPoolCreateInfo.queueFamilyIndex = 0;
 
-    result = vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, &commandPool);
+    VkResult result = vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, &commandPool);
     ASSERT_VULKAN(result);
+}
 
+void createCommandBuffers()
+{
     VkCommandBufferAllocateInfo commandBufferAllocateInfo;
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     commandBufferAllocateInfo.pNext = NULL;
@@ -604,9 +672,12 @@ void startVulkan()
     commandBufferAllocateInfo.commandBufferCount = amountOfImagesInSwapchain;
 
     commandBuffers.resize(amountOfImagesInSwapchain);
-    result = vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, commandBuffers.data());
+    VkResult result = vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, commandBuffers.data());
     ASSERT_VULKAN(result);
+}
 
+void recordCommandBuffers()
+{
     for (size_t i = 0; i < amountOfImagesInSwapchain; i++)
     {
         VkCommandBufferBeginInfo commandBufferBeginInfo;
@@ -614,7 +685,7 @@ void startVulkan()
         commandBufferBeginInfo.pNext = NULL;
         commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
         commandBufferBeginInfo.pInheritanceInfo = NULL;
-        result = vkBeginCommandBuffer(commandBuffers[i], &commandBufferBeginInfo);
+        VkResult result = vkBeginCommandBuffer(commandBuffers[i], &commandBufferBeginInfo);
         ASSERT_VULKAN(result);
 
         VkRenderPassBeginInfo renderPassBeginInfo;
@@ -623,7 +694,7 @@ void startVulkan()
         renderPassBeginInfo.renderPass = renderPass;
         renderPassBeginInfo.framebuffer = framebuffers[i];
         renderPassBeginInfo.renderArea.offset = {0, 0};
-        renderPassBeginInfo.renderArea.extent = {WIDTH, HEIGHT};
+        renderPassBeginInfo.renderArea.extent = {width, height};
         VkClearValue clearValue = {0.f, 0.f, 0.f, 1.f};
         renderPassBeginInfo.clearValueCount = 1;
         renderPassBeginInfo.pClearValues = &clearValue;
@@ -639,16 +710,74 @@ void startVulkan()
         result = vkEndCommandBuffer(commandBuffers[i]);
         ASSERT_VULKAN(result);
     }
+}
 
+void createSemaphores()
+{
     VkSemaphoreCreateInfo semaphoreCreateInfo;
     semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreCreateInfo.pNext = NULL;
     semaphoreCreateInfo.flags = 0;
 
-    result = vkCreateSemaphore(device, &semaphoreCreateInfo, NULL, &semaphoreImageAvailable);
+    VkResult result = vkCreateSemaphore(device, &semaphoreCreateInfo, NULL, &semaphoreImageAvailable);
     ASSERT_VULKAN(result);
     result = vkCreateSemaphore(device, &semaphoreCreateInfo, NULL, &semaphoreRenderingDone);
     ASSERT_VULKAN(result);
+}
+
+void startVulkan()
+{
+    createInstance();
+    printInstanceLayers();
+    printInstanceExtensions();
+    createGlfwWindowSurface();
+    printStatsOfAllPhysicalDevices();
+    createLogicalDevice();
+    createQueue();
+    checkSurfaceSupport();
+    createSwapchain();
+    createImageViews();
+    createRenderPass();
+    createPipeline();
+    createFramebuffers();
+    createCommandPool();
+    createCommandBuffers();
+    recordCommandBuffers();
+    createSemaphores();
+}
+
+void recreateSwapchain()
+{
+    vkDeviceWaitIdle(device);
+
+    vkFreeCommandBuffers(device, commandPool, amountOfImagesInSwapchain, commandBuffers.data());
+    vkDestroyCommandPool(device, commandPool, NULL);
+    for (size_t i = 0; i < amountOfImagesInSwapchain; i++)
+    {
+        vkDestroyFramebuffer(device, framebuffers.data()[i], NULL);
+    }
+
+    vkDestroyPipeline(device, pipeline, NULL);
+    vkDestroyRenderPass(device, renderPass, NULL);
+    for (int i = 0; i < amountOfImagesInSwapchain; i++)
+    {
+        vkDestroyImageView(device, imageViews.data()[i], NULL);
+    }
+    vkDestroyPipelineLayout(device, pipelineLayout, NULL);
+    vkDestroyShaderModule(device, shaderModuleVert, NULL);
+    vkDestroyShaderModule(device, shaderModuleFrag, NULL);
+
+    VkSwapchainKHR oldSwapchain = swapchain;
+
+    createSwapchain();
+    createImageViews();
+    createRenderPass();
+    createPipeline();
+    createFramebuffers();
+    createCommandPool();
+    createCommandBuffers();
+    recordCommandBuffers();
+    vkDestroySwapchainKHR(device, oldSwapchain, NULL);
 }
 
 void drawFrame()
@@ -698,7 +827,7 @@ void startGameLoop()
         glfwPollEvents();
         drawFrame();
         double end = glfwGetTime();
-        std::cout << "FPS: " << 1 / (end - start) << std::endl;
+        //std::cout << "FPS: " << 1 / (end - start) << std::endl;
     }
 }
 
